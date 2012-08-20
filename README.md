@@ -56,6 +56,18 @@ var step = {
     phases  : phases
 };
 ```
+
+``` html
+		<div id="step1" style="display: none;">
+			<h1>step 1</h1>
+			<div id="step1phase1" style="display: none;">
+				<h2>phase 1</h2>
+				<input type="button" value="next" class="next" />
+			</div>
+			...
+		</div>
+```
+
 ## Action
 
 ## Conditions
