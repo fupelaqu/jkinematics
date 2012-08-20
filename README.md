@@ -24,16 +24,16 @@ If one of them is not satisfied, step or phase to which it applies will not be e
 ## Step
 
 A step is defined using a javascript object which may contain the following attributes:
-	id (unique identifier - mandatory)
-	conditions (javascript array of objects corresponding to the conditions to be met to perform this step - optional)
-	phases (javascript array of objects corresponding to all phases in this step - mandatory)
+    id (unique identifier - mandatory)
+    conditions (javascript array of objects corresponding to the conditions to be met to perform this step - optional)
+    phases (javascript array of objects corresponding to all phases in this step - mandatory)
 
 ## Phase
 
 A phase is defined using a javascript object which may contain the following attributes:
-	id (unique identifier - mandatory)
-	conditions (javascript array of objects corresponding to the conditions to be met to complete this phase - optional)
-	shares (javascript array of objects corresponding to all actions to be executed in this phase - optional)
+    id (unique identifier - mandatory)
+    conditions (javascript array of objects corresponding to the conditions to be met to complete this phase - optional)
+    shares (javascript array of objects corresponding to all actions to be executed in this phase - optional)
 
 ## Actions
 
