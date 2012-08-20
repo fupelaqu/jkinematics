@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>jkinematics sample</title>
+<script type="text/javascript" src="native.history.js"></script>
+<script type="text/javascript" src="jkinematics.js"></script>
+<script type="text/javascript">
+<!--
+    window.onload = function() {
+        var steps = new Array();
+
+        // phases au sein de l'étape
+        var phases = new Array();
+
+        // pré-conditions à appliquer à la phase
+        var conditions = new Array();
+
+        // actions au sein de la phase
+        var actions = new Array();
+        // exemple :
+        // actions.push({mode:'call', script:'monAction', controller:'MonController'});
+        // avec : 
+        /*
+        window.MonController = (function(){
+        	return {
+        		monAction : function(){
+        			var ret = true;
+        			// ...
+        			return ret;
+        		}
+        	};
+        })();
+         */
+
+        steps.push((function() {
+            phases.push({
+                id : 'step1phase1',
+                actions : actions.slice(0),
+                conditions : conditions,
+                title : 'Phase 1'
+            });
+            phases.push({
+                id : 'step1phase2',
+                actions : actions.slice(0),
+                conditions : conditions,
+                title : 'Phase 2'
+            });
+            phases.push({
+                id : 'step1phase3',
+                actions : actions.slice(0),
+                conditions : conditions,
+                title : 'Phase 3'
+            });
+
+            return {
+                id : 'step1',
+                phases : phases,
+                conditions : conditions
+            };
+
+        })());
+
+        phases = [];
+
+        steps.push((function() {
+            phases.push({
+                id : 'step2phase1',
+                actions : actions.slice(0),
+                conditions : conditions,
+                title : 'Phase 1'
+            });
+            phases.push({
+                id : 'step2phase2',
+                actions : actions.slice(0),
+                conditions : conditions,
+                title : 'Phase 2'
+            });
+            phases.push({
+                id : 'step2phase3',
+                actions : actions.slice(0),
+                conditions : conditions,
+                title : 'Phase 3'
+            });
+
+            return {
+                id : 'step2',
+                phases : phases,
+                conditions : conditions
+            };
+
+        })());
+
+        phases = [];
+
+        steps.push((function() {
+            phases.push({
+                id : 'step3phase1',
+                actions : actions.slice(0),
+                conditions : conditions,
+                title : 'Phase 1'
+            });
+            phases.push({
+                id : 'step3phase2',
+                actions : actions.slice(0),
+                conditions : conditions,
+                title : 'Phase 2'
+            });
+            phases.push({
+                id : 'step3phase3',
+                actions : actions.slice(0),
+                conditions : conditions,
+                title : 'Phase 3'
+            });
+
+            return {
+                id : 'step3',
+                phases : phases,
+                conditions : conditions
+            };
+
+        })());
+
+        window.JKinematics.store('kinematics', {
+            steps : steps
+        });
+    };
+//-->
+</script>
+<style type="text/css">
+ul {
+	padding: 0;
+	margin: 0;
+	list-style-type: none;
+}
+
+li {
+	margin-left: 2px;
+	float: left; /*pour IE*/
+}
+
+ul li a {
+	display: block;
+	float: left;
+	width: 100px;
+	background-color: #6495ED;
+	color: black;
+	text-decoration: none;
+	text-align: center;
+	padding: 5px;
+	border: 2px solid;
+	/*pour avoir un effet "outset" avec IE :*/
+	border-color: #DCDCDC #696969 #696969 #DCDCDC;
+}
+
+ul li a:hover,ul li.currentStep a {
+	background-color: #D3D3D3;
+	border-color: #696969 #DCDCDC #DCDCDC #696969;
+}
+</style>
+</head>
+<body>
+	<div id="kinematics" style="display: none;">
+		<ul style="display: inline;">
+			<li id="step_step1"><a
+				onclick="window.JKinematics.lookup('kinematics').goTo('step1', 'step1phase1')"
+				style="cursor: pointer">step 1</a></li>
+			<li id="step_step2"><a
+				onclick="window.JKinematics.lookup('kinematics').goTo('step2', 'step2phase1')"
+				style="cursor: pointer">step 2</a></li>
+			<li id="step_step3"><a
+				onclick="window.JKinematics.lookup('kinematics').goTo('step3', 'step3phase1')"
+				style="cursor: pointer">step 3</a></li>
+		</ul>
+		<br />
+		<div id="step1" style="display: none;">
+			<h1>step 1</h1>
+			<div id="step1phase1" style="display: none;">
+				<h2>phase 1</h2>
+				<input type="button" value="next" class="next" />
+			</div>
+			<div id="step1phase2" style="display: none;">
+				<h2>phase 2</h2>
+				<input type="button" value="back" class="back" /> <input
+					type="button" value="next" class="next" />
+			</div>
+			<div id="step1phase3" style="display: none;">
+				<h2>phase 3</h2>
+				<input type="button" value="back" class="back" /> <input
+					type="button" value="next" class="next" />
+			</div>
+		</div>
+		<div id="step2" style="display: none;">
+			<h1>step 2</h1>
+			<div id="step2phase1" style="display: none;">
+				<h2>phase 1</h2>
+				<input type="button" value="back" class="back" /> <input
+					type="button" value="next" class="next" />
+			</div>
+			<div id="step2phase2" style="display: none;">
+				<h2>phase 2</h2>
+				<input type="button" value="back" class="back" /> <input
+					type="button" value="next" class="next" />
+			</div>
+			<div id="step2phase3" style="display: none;">
+				<h2>phase 3</h2>
+				<input type="button" value="back" class="back" /> <input
+					type="button" value="next" class="next" />
+			</div>
+		</div>
+		<div id="step3" style="display: none;">
+			<h1>step 3</h1>
+			<div id="step3phase1" style="display: none;">
+				<h2>phase 1</h2>
+				<input type="button" value="back" class="back" /> <input
+					type="button" value="next" class="next" />
+			</div>
+			<div id="step3phase2" style="display: none;">
+				<h2>phase 2</h2>
+				<input type="button" value="back" class="back" /> <input
+					type="button" value="next" class="next" />
+			</div>
+			<div id="step3phase3" style="display: none;">
+				<h2>phase 3</h2>
+				<input type="button" value="back" class="back" />
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>
