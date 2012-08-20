@@ -75,8 +75,8 @@ var step = {
 An action is defined using a javascript object which may contain the following attributes:
 
 - `mode` : type of action to be executed - mandatory
-- `controller` : defining the name of the controller action - optional
-- `script` : the javascript function to be called or javscript code to be run - mandatory when the mode attribute is equal respectively to call or execute
+- `controller` : defining the name of the controller which defines the javascript function to be call - may be defined when the `mode` attribute is equal to call
+- `script` : the javascript function to be called or javscript code to be run - mandatory when the `mode` attribute is equal respectively to call or execute
 - `timeout` : time expressed in millisecond during which the normal flow of execution of the kinematic will be suspended. After this time, the kinematics will automatically resume its execution flow. - mandatory when the `mode` attribute is equal to wait
 
 ### Mode
@@ -85,7 +85,7 @@ The `mode` attribute can take the following values:
 
 - `stop`: stops the normal flow of execution of the kinematics. Resuming execution of the kinematics requires an explicit request from the client. An action of this type is added by default to the list of actions defined for each phase.
 - `wait`: suspends the normal flow of execution of the kinematics for the time specified using the `timeout` attribute.
-- `call`: calls the javascript function specified using the `script` attribute that can be defined in a controller using the `controller` attribute.
+- `call`: calls the javascript function specified using the `script` attribute that may be defined within a controller using the `controller` attribute.
 - `execute`: runs javascript code specified using the `script` attribute.
 
 ## Conditions
