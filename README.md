@@ -44,7 +44,7 @@ phases.push(phase);
 var step = {
     id  : 'step1',   // (unique identifier - mandatory)
     conditions : [], // (javascript array of objects corresponding to the conditions to be met to perform this step - optional)
-    phases  : []     // (javascript array of objects corresponding to all phases in this step - mandatory)
+    phases  : phases // (javascript array of objects corresponding to all phases in this step - mandatory)
 };
 ```
 ## Actions
