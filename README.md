@@ -24,30 +24,39 @@ If one of them is not satisfied, step or phase to which it applies will not be e
 ## Phase
 
 A phase is defined using a javascript object which may contain the following attributes:
+- id : unique identifier - mandatory
+- conditions : javascript array of objects corresponding to the conditions to be met to complete this phase - optional
+- actions : javascript array of objects corresponding to all actions to be executed in this phase - optional
+
 ``` javascript
 var actions = [];
 // ...
 var phase = {
-    id  : 'step1phase1', // (unique identifier - mandatory)
-    conditions : [],     // (javascript array of objects corresponding to the conditions to be met to complete this phase - optional)
-    actions : actions    // (javascript array of objects corresponding to all actions to be executed in this phase - optional)
+    id  : 'step1phase1',
+    conditions : [],
+    actions : actions
 };
 ```
 
 ## Step
 
 A step is defined using a javascript object which may contain the following attributes:
+- id : unique identifier - mandatory
+- conditions : javascript array of objects corresponding to the conditions to be met to complete this phase - optional
+- phases : javascript array of objects corresponding to all phases in this step - mandatory
+
+
 ``` javascript
 var phases = [];
 phases.push(phase);
 // ...
 var step = {
-    id  : 'step1',   // (unique identifier - mandatory)
-    conditions : [], // (javascript array of objects corresponding to the conditions to be met to perform this step - optional)
-    phases  : phases // (javascript array of objects corresponding to all phases in this step - mandatory)
+    id  : 'step1',
+    conditions : [],
+    phases  : phases
 };
 ```
-## Actions
+## Action
 
 ## Conditions
 
