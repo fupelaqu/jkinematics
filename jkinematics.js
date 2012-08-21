@@ -119,8 +119,7 @@
     /* begin State class */
 
     function State() {
-        this.target = null, this.step = null, this.phase = null,
-                this.fromBrowser = false;
+        this.target = null, this.step = null, this.phase = null;
     }
 
     /* end State class */
@@ -129,6 +128,7 @@
 
     function Kinematics() {
         this.target = null, // targeted element including kinematics
+        this.debug = false, // flag to print messages to the console
         this.steps = null, // all current steps within the kinematics
         this.originalSteps = null, // all steps defined for this kinematics
         this.currentStep = null, // current step within the kinematics
@@ -148,17 +148,23 @@
 
             switch (action.mode) {
             case 'wait':
+                // suspends the normal flow of execution of the kinematics for
+                // the time specified using the timeout attribute
                 ret = false;
-                // on suspend le flot normal d'exŽcution durant le timeout
-                // spŽcifiŽ
                 setTimeout(function() {
                     self.resume();
                 }, action.timeout);
                 break;
             case 'stop':
+                // stops the normal flow of execution of the kinematics.
+                // Resuming execution of the kinematics requires an explicit
+                // request from the client.
                 ret = false;
                 break;
             case 'call':
+                // calls the javascript function specified using the script
+                // attribute that may be defined within a controller using the
+                // controller attribute.
                 var script = eval((action.controller ? action.controller
                         : 'window')
                         + '.' + action.script);
@@ -175,6 +181,7 @@
                 }
                 break;
             case 'execute':
+                // runs javascript code specified using the script attribute.
                 try {
                     ret = eval(action.script);
                 } catch (err) {
@@ -221,7 +228,7 @@
                 if (!ret) {
                     if (isEqual(this.currentAction.mode, 'stop')
                             || isEqual(this.currentAction.mode, 'wait')) {
-                        // on ne rejoue pas le stop, ni le wait
+                        // stop and wait actions are executed only once
                         this.currentPhase.actions.splice(0, 1);
                     }
                     break;
@@ -258,17 +265,17 @@
         var ret = true;
         if (isDefined(this.currentStep) && isDefined(this.currentStep.phases)
                 && this.currentStep.phases.length > 0) {
-            // on boucle jusqu'ˆ l'obtention de la phase courrante
+            // loop until the current phase
             do {
                 var previousPhase = this.currentPhase;
                 var newPhase = this.currentStep.phases[0];
-                var changementPhase = false;
+                var phaseChange = false;
                 if (isUndefined(previousPhase)
                         || isNotEqual(previousPhase.id, newPhase.id)) {
                     if (isDefined(previousPhase)) {
-                        changementPhase = true;
+                        phaseChange = true;
                     }
-                    // passage ˆ la phase suivante
+                    // transition to the next phase
                     this.currentPhase = newPhase;
                     if (isUndefined(this.currentPhase.step)) {
                         this.currentPhase.step = this.currentStep.id;
@@ -286,10 +293,12 @@
                     }
                 }
 
-                console.log('nextPhase [' + this.currentStep.id + ','
-                        + this.currentPhase.id + ']');
+                if (this.debug) {
+                    console.log('nextPhase [' + this.currentStep.id + ','
+                            + this.currentPhase.id + ']');
+                }
 
-                // application des prŽ-conditions
+                // application of pre-conditions
                 var checkConditions = this
                         .checkConditions(this.currentPhase.conditions);
                 if (!checkConditions) {
@@ -297,7 +306,7 @@
                 }
                 ret = checkConditions && this.executeActions();
                 if (!ret && !this.currentPhase.skipped) {
-                    if (changementPhase) {
+                    if (phaseChange) {
                         if (isDefined(previousPhase) && previousPhase.skipped
                                 && isDefined(previousPhase.previousPhase)) {
                             do {
@@ -307,12 +316,25 @@
                         }
                         JKinematics.Adapter.removeEltClass(this.target,
                                 previousPhase.id);
-                        // on cache la vue correspondante ˆ l'ancienne phase
+                        // we hide the view corresponding to the previous phase
                         JKinematics.Adapter.hideElt(previousPhase.id);
                     }
+
+                    if ((phaseChange || isUndefined(previousPhase))
+                            && isDefined(History)) {
+                        var state = new State();
+                        state.target = this.target;
+                        state.step = this.currentStep.id;
+                        state.phase = this.currentPhase.id;
+                        var title = this.currentPhase.title;
+                        var url = '?target=' + state.target + '&step='
+                                + state.step + '&phase=' + state.phase;
+                        History.pushState(state, title, url);
+                    }
+
                     JKinematics.Adapter.addEltClass(this.target,
                             this.currentPhase.id);
-                    // on affiche la vue correspondante ˆ la nouvelle phase
+                    // we show the view corresponding to the current phase
                     JKinematics.Adapter.showElt(this.currentPhase.id);
                     document.title = this.currentPhase.title;
                     break;
@@ -359,8 +381,10 @@
         var currentStep = this.currentStep;
         if (isDefined(currentPhase) && isDefined(currentStep)) {
 
-            console.log('previousPhase [' + this.currentStep.id + ','
-                    + this.currentPhase.id + ']');
+            if (this.debug) {
+                console.log('previousPhase [' + this.currentStep.id + ','
+                        + this.currentPhase.id + ']');
+            }
 
             // reset current phase conditions
             if (isDefined(currentPhase.previousConditions)) {
@@ -427,17 +451,17 @@
                     } while (previousPhase.skipped);
                 }
 
-                var changementEtape = isNotEqual(this.currentStep.id,
+                var stepChange = isNotEqual(this.currentStep.id,
                         currentStep.id);
                 // update current step
-                if (changementEtape) {
+                if (stepChange) {
                     JKinematics.Adapter.removeEltClass('step_'
                             + this.currentStep.id, 'currentStep');
-                    // on cache la vue correspondante ˆ l'ancienne Žtape
+                    // we hide the view corresponding to the previous step
                     JKinematics.Adapter.hideElt(this.currentStep.id);
                     JKinematics.Adapter.addEltClass('step_' + currentStep.id,
                             'currentStep');
-                    // on affiche la vue correspondante ˆ la nouvelle Žtape
+                    // we show the view corresponding to the current step
                     JKinematics.Adapter.showElt(currentStep.id);
                     this.currentStep = currentStep;
                 }
@@ -457,10 +481,10 @@
                 currentStep.phases.splice(0, 0, previousPhase);
                 JKinematics.Adapter
                         .removeEltClass(this.target, currentPhase.id);
-                // on cache la vue correspondante ˆ l'ancienne phase
+                // we hide the view corresponding to the previous phase
                 JKinematics.Adapter.hideElt(currentPhase.id);
                 JKinematics.Adapter.addEltClass(this.target, previousPhase.id);
-                // on affiche la vue correspondante ˆ la nouvelle phase
+                // we show the view corresponding to the current phase
                 JKinematics.Adapter.showElt(previousPhase.id);
                 this.currentPhase = previousPhase;
 
@@ -468,16 +492,16 @@
 
                 this.nextPhase();
 
-                // if(changementEtape){
-                // var state = new State();
-                // state.target = this.target;
-                // state.step = this.currentStep.id;
-                // state.phase = this.currentPhase.id;
-                // var title = this.currentPhase.title;
-                // var url = '?target=' + state.target + '&step=' + state.step
-                // + '&phase=' + state.phase;
-                // History.pushState(state, title, url);
-                // }
+                if (stepChange && isDefined(History)) {
+                    var state = new State();
+                    state.target = this.target;
+                    state.step = this.currentStep.id;
+                    state.phase = this.currentPhase.id;
+                    var title = this.currentPhase.title;
+                    var url = '?target=' + state.target + '&step=' + state.step
+                            + '&phase=' + state.phase;
+                    History.pushState(state, title, url);
+                }
             }
         }
     };
@@ -486,13 +510,13 @@
         var ret = true;
         if (this.steps.length > 0) {
             var previousStep = this.currentStep;
-            // changement d'Žtape
-            var changementEtape = false;
+            // step change
+            var stepChange = false;
             var newStep = this.steps[0];
             if (isUndefined(previousStep)
                     || isNotEqual(previousStep.id, newStep.id)) {
                 if (isDefined(previousStep)) {
-                    changementEtape = true;
+                    stepChange = true;
                 }
                 this.currentStep = newStep;
                 this.currentStep.previousConditions = newStep.conditions
@@ -500,13 +524,15 @@
                 this.currentStep.previousStep = previousStep;
             }
 
-            console.log('nextStep [' + this.currentStep.id + ']');
+            if (this.debug) {
+                console.log('nextStep [' + this.currentStep.id + ']');
+            }
 
             var next = isDefined(this.currentStep)
                     && (isUndefined(this.currentStep.phases) || isEqual(
                             this.currentStep.phases.length, 0));
 
-            // application des prŽ-conditions
+            // application of pre-conditions
             var checkConditions = this
                     .checkConditions(this.currentStep.conditions);
             if (!checkConditions) {
@@ -516,21 +542,21 @@
             ret = checkConditions && !next && this.nextPhase();
 
             if (!ret && !this.currentStep.skipped && !next) {
-                if (changementEtape) {
+                if (stepChange) {
                     if (isDefined(previousStep) && previousStep.skipped) {
                         do {
                             previousStep = previousStep.previousStep;
                         } while (previousStep.skipped);
                     }
-                    // maj etape
+                    // update step
                     JKinematics.Adapter.removeEltClass('step_'
                             + previousStep.id, 'currentStep');
-                    // on cache la vue correspondante ˆ l'ancienne Žtape
+                    // we hide the view corresponding to the previous step
                     JKinematics.Adapter.hideElt(previousStep.id);
 
                 }
 
-                if ((changementEtape || isUndefined(previousStep))
+                if ((stepChange || isUndefined(previousStep))
                         && isDefined(History)) {
                     var state = new State();
                     state.target = this.target;
@@ -542,10 +568,10 @@
                     History.pushState(state, title, url);
                 }
 
-                // maj etape
+                // update step
                 JKinematics.Adapter.addEltClass('step_' + this.currentStep.id,
                         'currentStep');
-                // on affiche la vue correspondante ˆ la nouvelle Žtape
+                // we show the view corresponding to the current step
                 JKinematics.Adapter.showElt(this.currentStep.id);
             } else {
                 if (this.steps.length > 1) {
@@ -614,7 +640,7 @@
                 });
                 actions.push({
                     mode : 'stop'
-                }); // nŽcessite une action de l'utilisateur
+                }); // requires an explicit request from the client
                 var conditions = new Array();
                 forEach(phase.conditions, function(condition) {
                     conditions.push(copy({}, condition));
@@ -658,7 +684,9 @@
 
     Kinematics.prototype.goTo = function(step, phase) {
 
-        console.log('goTo [' + step + ',' + phase + ']');
+        if (this.debug) {
+            console.log('goTo [' + step + ',' + phase + ']');
+        }
 
         var ret = true;
 
@@ -671,7 +699,7 @@
         this.resetSteps();
 
         if (this.steps.length > 0) {
-            // on itre jusqu'ˆ obtention de l'Žtape ˆ atteindre
+            // loop until the new step
             do {
                 var tempStep = this.steps[0];
                 if (isEqual(tempStep.id, step)) {
@@ -682,23 +710,23 @@
             } while (this.steps.length > 0);
         }
 
-        var changementEtape = false;
+        var stepChange = false;
 
         if (isDefined(newStep)) {
 
-            changementEtape = isDefined(oldStep)
+            stepChange = isDefined(oldStep)
                     && isNotEqual(oldStep.id, step);
 
-            if (changementEtape) {
+            if (stepChange) {
                 if (oldStep.skipped && isDefined(oldStep.previousStep)) {
                     do {
                         oldStep = oldStep.previousStep;
                     } while (oldStep.skipped && isDefined(oldStep.previousStep));
                 }
-                // maj etape
+                // update step
                 JKinematics.Adapter.removeEltClass('step_' + oldStep.id,
                         'currentStep');
-                // on cache la vue correspondante ˆ l'ancienne Žtape
+                // we hide the view corresponding to the previous step
                 JKinematics.Adapter.hideElt(oldStep.id);
             }
 
@@ -708,17 +736,17 @@
                 newStep.conditions = newStep.previousConditions.slice(0);
             }
 
-            // maj etape courrante
+            // update current step
             this.currentStep = newStep;
 
-            // maj etape
+            // update step
             JKinematics.Adapter.addEltClass('step_' + this.currentStep.id,
                     'currentStep');
-            // on affiche la vue correspondante ˆ la nouvelle Žtape
+            // we show the view corresponding to the current step
             JKinematics.Adapter.showElt(this.currentStep.id);
 
             if (newStep.phases.length > 0) {
-                // on itre jusqu'ˆ obtention de la phase ˆ atteindre
+                // loop until the new phase
                 do {
                     var tempPhase = newStep.phases[0];
                     if (isEqual(tempPhase.id, phase)) {
@@ -730,7 +758,7 @@
             }
         }
 
-        var changementPhase = false;
+        var phaseChange = false;
 
         if (isDefined(newPhase)) {
 
@@ -746,15 +774,15 @@
                 newPhase.conditions = newPhase.previousConditions.slice(0);
             }
 
-            // maj phase courrante
+            // update current phase
             this.currentPhase = newPhase;
 
             document.title = newPhase.title;
 
-            changementPhase = isDefined(oldPhase)
+            phaseChange = isDefined(oldPhase)
                     && isNotEqual(oldPhase.id, phase);
 
-            if (changementPhase) {
+            if (phaseChange) {
                 if (oldPhase.skipped && isDefined(oldPhase.previousPhase)) {
                     do {
                         oldPhase = oldPhase.previousPhase;
@@ -762,19 +790,19 @@
                             && isDefined(oldPhase.previousPhase));
                 }
                 JKinematics.Adapter.removeEltClass(this.target, oldPhase.id);
-                // on cache la vue correspondante ˆ l'ancienne phase
+                // we hide the view corresponding to the previous phase
                 JKinematics.Adapter.hideElt(oldPhase.id);
 
             }
 
             JKinematics.Adapter.addEltClass(this.target, this.currentPhase.id);
-            // on affiche la vue correspondante ˆ la nouvelle phase
+            // we show the view corresponding to the current phase
             JKinematics.Adapter.showElt(this.currentPhase.id);
 
             // on exŽcute la phase atteinte
             ret = this.nextPhase();
 
-            if (changementEtape && isDefined(History)) {
+            if (stepChange && isDefined(History)) {
                 var state = new State();
                 state.target = this.target;
                 state.step = this.currentStep.id;
@@ -807,8 +835,7 @@
             }
             JKinematics.Adapter.removeEltClass('step_' + currentStep.id,
                     'currentStep');
-            // on cache la vue correspondante ˆ l'Žtape en
-            // cours
+            // we hide the view corresponding to the current step
             JKinematics.Adapter.hideElt(currentStep.id);
         }
 
@@ -821,8 +848,7 @@
                         && isDefined(currentPhase.previousPhase));
             }
             JKinematics.Adapter.removeEltClass(this.target, currentPhase.id);
-            // on cache la vue correspondante ˆ la phase en
-            // cours
+            // we hide the view corresponding to the current phase
             JKinematics.Adapter.hideElt(currentPhase.id);
         }
 
@@ -863,10 +889,18 @@
     JKinematics.prototype.store = function(target, options) {
         var self = this;
         var value = this.lookup(target);
-        var steps = isDefined(options) ? options.steps : [];
-        var step = isDefined(options) ? options.step : null;
-        var phase = isDefined(options) ? options.phase : null;
-        var scripts = isDefined(options) ? options.scripts : [];
+        options = copy({
+            steps : [],
+            step : null,
+            phase : null,
+            debug : false,
+            scripts : []
+        }, options);
+        var steps = options.steps;
+        var step = options.step;
+        var phase = options.phase;
+        var debug = options.debug;
+        var scripts = options.scripts;
         var loadScripts = function(scripts) {
             if (scripts && scripts.length > 0) {
                 loadScript(scripts[0], function(data, status) {
@@ -874,12 +908,53 @@
                     loadScripts(scripts);
                 });
             } else {
-                setTimeout(function() {
-                    value = isDefined(value) ? value : new Kinematics();
-                    value.target = target;
-                    value.init(steps.slice(0), step, phase);
-                    self.values[target] = value;
-                }, 100);
+                setTimeout(
+                        function() {
+                            value = isDefined(value) ? value : new Kinematics();
+                            value.target = target;
+                            value.debug = debug;
+                            value.init(steps.slice(0), step, phase);
+                            self.values[target] = value;
+
+                            /**
+                             * handle history
+                             */
+                            var handleStateChange = function(data) {
+                                if (isDefined(data)) {
+                                    var target = data.target, step = data.step, phase = data.phase;
+                                    if (isDefined(target) && isDefined(step)
+                                            && isDefined(phase)) {
+                                        var kinematics = jkinematics
+                                                .lookup(target);
+                                        if (isDefined(kinematics)) {
+                                            var currentStep = isDefined(kinematics.currentStep) ? kinematics.currentStep.id
+                                                    : null;
+                                            var currentPhase = isDefined(kinematics.currentPhase) ? kinematics.currentPhase.id
+                                                    : null;
+                                            if (isNotEqual(currentStep, step)
+                                                    || isNotEqual(currentPhase,
+                                                            phase)) {
+                                                kinematics.goTo(step, phase);
+                                            }
+                                        }
+                                    }
+                                }
+                            };
+
+                            var History = window.History;
+                            if (isDefined(History) && History.enabled) {
+                                // Bind to StateChange Event
+                                History.Adapter.bind(window, 'statechange',
+                                        function() {
+                                            var State = History.getState();
+                                            History.log(State.data,
+                                                    State.title, State.url);
+                                            var data = State.data;
+                                            handleStateChange(data);
+                                        });
+                            }
+
+                        }, 1);
             }
         };
         loadScripts(scripts);
@@ -1003,43 +1078,6 @@
                 }
             }
         };
-    }
-
-    /**
-     * handle history
-     */
-    var History = window.History;
-    if (isDefined(History) && History.enabled) {
-        // Bind to StateChange Event
-        History.Adapter
-                .bind(
-                        window,
-                        'statechange',
-                        function() {
-                            var State = History.getState();
-                            History.log(State.data, State.title, State.url);
-                            var data = State.data;
-                            if (isDefined(data)) {
-                                var target = data.target, step = data.step, phase = data.phase;
-                                if (isDefined(target) && isDefined(step)
-                                        && isDefined(phase)) {
-                                    var kinematics = jkinematics.lookup(target);
-                                    if (isDefined(kinematics)) {
-                                        var currentStep = isDefined(kinematics.currentStep) ? kinematics.currentStep.id
-                                                : null;
-                                        // var currentPhase
-                                        // =
-                                        // kinematics.currentPhase.id;
-                                        if (isNotEqual(currentStep, step)
-                                        // || currentPhase != phase
-                                        ) {
-                                            kinematics.goTo(step, phase);
-                                        }
-                                    }
-                                }
-                            }
-                        });
-
     }
 
 })(window);

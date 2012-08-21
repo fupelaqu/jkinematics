@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>jkinematics sample</title>
-<script type="text/javascript" src="https://raw.github.com/balupton/history.js/master/scripts/bundled/html4+html5/native.history.js"></script>
 <script type="text/javascript" src="jkinematics.js"></script>
 <script type="text/javascript">
 <!--
@@ -122,7 +121,9 @@
         })());
 
         window.JKinematics.store('kinematics', {
-            steps : steps
+            steps : steps,
+            debug : true,
+            scripts : ['native.history.js'] //https://raw.github.com/balupton/history.js/master/scripts/bundled/html4+html5/native.history.js
         });
     };
 //-->
