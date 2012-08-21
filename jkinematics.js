@@ -451,8 +451,7 @@
                     } while (previousPhase.skipped);
                 }
 
-                var stepChange = isNotEqual(this.currentStep.id,
-                        currentStep.id);
+                var stepChange = isNotEqual(this.currentStep.id, currentStep.id);
                 // update current step
                 if (stepChange) {
                     JKinematics.Adapter.removeEltClass('step_'
@@ -714,8 +713,7 @@
 
         if (isDefined(newStep)) {
 
-            stepChange = isDefined(oldStep)
-                    && isNotEqual(oldStep.id, step);
+            stepChange = isDefined(oldStep) && isNotEqual(oldStep.id, step);
 
             if (stepChange) {
                 if (oldStep.skipped && isDefined(oldStep.previousStep)) {
@@ -779,8 +777,7 @@
 
             document.title = newPhase.title;
 
-            phaseChange = isDefined(oldPhase)
-                    && isNotEqual(oldPhase.id, phase);
+            phaseChange = isDefined(oldPhase) && isNotEqual(oldPhase.id, phase);
 
             if (phaseChange) {
                 if (oldPhase.skipped && isDefined(oldPhase.previousPhase)) {
@@ -944,14 +941,19 @@
                             var History = window.History;
                             if (isDefined(History) && History.enabled) {
                                 // Bind to StateChange Event
-                                History.Adapter.bind(window, 'statechange',
-                                        function() {
-                                            var State = History.getState();
-                                            History.log(State.data,
-                                                    State.title, State.url);
-                                            var data = State.data;
-                                            handleStateChange(data);
-                                        });
+                                History.Adapter
+                                        .bind(window, 'statechange',
+                                                function() {
+                                                    var State = History
+                                                            .getState();
+                                                    if (debug) {
+                                                        History.log(State.data,
+                                                                State.title,
+                                                                State.url);
+                                                    }
+                                                    var data = State.data;
+                                                    handleStateChange(data);
+                                                });
                             }
 
                         }, 1);
