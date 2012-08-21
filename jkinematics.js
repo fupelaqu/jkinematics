@@ -850,9 +850,10 @@
         }
 
         var element = document.getElementById(this.target);
-        var self = this;
 
         if (isDefined(element)) {
+            var self = this;
+
             forEach(JKinematics.Adapter.getByClass(element, 'back'), function(
                     back) {
                 JKinematics.Adapter.attach(back, 'click', function() {
@@ -985,7 +986,7 @@
                 return re.test(element.className);
             },
             getByClass : function(element, cls) {
-                if (element.querySelectorAll) {
+                if (isDefined(element.querySelectorAll)) {
                     return element.querySelectorAll('.' + cls);
                 }
                 var result = [];
@@ -1064,18 +1065,18 @@
                         && JKinematics.Adapter.appendElt(target, content);
             },
             attach : function(element, type, fn, capture) {
-                if (element.addEventListener) {
+                if (isDefined(element.addEventListener)) {
                     element.addEventListener(type, fn,
                             capture != undefined ? capture : false);
-                } else if (element.attachEvent) {
+                } else if (isDefined(element.attachEvent)) {
                     element.attachEvent('on' + type, fn);
                 }
             },
             detach : function(element, type, fn, capture) {
-                if (element.removeEventListener) {
+                if (isDefined(element.removeEventListener)) {
                     element.removeEventListener(type, fn,
                             capture != undefined ? capture : false);
-                } else if (element.detachEvent) {
+                } else if (isDefined(element.detachEvent)) {
                     element.detachEvent('on' + type, fn);
                 }
             }
