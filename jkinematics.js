@@ -651,9 +651,11 @@
                 forEach(phase.actions, function(action) {
                     actions.push(copy({}, action));
                 });
-                actions.push({
-                    mode : 'stop'
-                }); // requires an explicit request from the client
+                if(actions.length == 0){
+                    actions.push({
+                        mode : 'stop'
+                    }); // requires an explicit request from the client
+                }
                 var conditions = new Array();
                 forEach(phase.conditions, function(condition) {
                     conditions.push(copy({}, condition));
