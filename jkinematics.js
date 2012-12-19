@@ -226,7 +226,7 @@
 			this.currentAction = this.currentPhase.actions[0];
 			if (isEqual(this.currentAction.asynchronous, true)){
 				this.currentPhase.actions.splice(0, 1);
-				this.next();
+				this.resume();
 			}
         }
     };
