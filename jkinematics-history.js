@@ -221,6 +221,18 @@
         return ret;
     };
 
+    Kinematics.prototype.handleAsynchronousCall = function() {
+        if (isDefined(this.currentPhase)
+                && isDefined(this.currentPhase.actions)
+                && this.currentPhase.actions.length > 0) {
+			this.currentAction = this.currentPhase.actions[0];
+			if (isEqual(this.currentAction.asynchronous, true)){
+				this.currentPhase.actions.splice(0, 1);
+				this.resume();
+			}
+        }
+    };
+
     Kinematics.prototype.executeActions = function() {
         var ret = true;
         if (isDefined(this.currentPhase)
@@ -649,9 +661,11 @@
                 forEach(phase.actions, function(action) {
                     actions.push(copy({}, action));
                 });
-                actions.push({
-                    mode : 'stop'
-                }); // nécessite une action de l'utilisateur
+                if(isEqual(actions.length, 0)){
+                    actions.push({
+                        mode : 'stop'
+                    }); // requires an explicit request from the client
+                }
                 var conditions = new Array();
                 forEach(phase.conditions, function(condition) {
                     conditions.push(copy({}, condition));
