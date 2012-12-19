@@ -176,6 +176,7 @@
                                 .call(this)
                                 : script.call(this);
                     } catch (err) {
+                        console.error(err);
                         ret = false;
                     }
                 } else {
@@ -187,6 +188,7 @@
                 try {
                     ret = eval(action.script);
                 } catch (err) {
+                    console.error(err);
                     ret = false;
                 }
                 break;
