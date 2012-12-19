@@ -651,7 +651,7 @@
                 forEach(phase.actions, function(action) {
                     actions.push(copy({}, action));
                 });
-                if(actions.length == 0){
+                if(isEqual(actions.length, 0)){
                     actions.push({
                         mode : 'stop'
                     }); // requires an explicit request from the client
