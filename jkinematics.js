@@ -219,6 +219,18 @@
         return ret;
     };
 
+    Kinematics.prototype.handleAsynchronousCall = function() {
+        if (isDefined(this.currentPhase)
+                && isDefined(this.currentPhase.actions)
+                && this.currentPhase.actions.length > 0) {
+			this.currentAction = this.currentPhase.actions[0];
+			if (isEqual(this.currentAction.asynchronous, true)){
+				this.currentPhase.actions.splice(0, 1);
+				this.next();
+			}
+        }
+    };
+
     Kinematics.prototype.executeActions = function() {
         var ret = true;
         if (isDefined(this.currentPhase)
