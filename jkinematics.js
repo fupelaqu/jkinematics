@@ -17,6 +17,37 @@
     }, console.info = console.info || function() {
     };
 
+    var isIE = isFirefox = isSafari = isOpera = isChrome = false;
+    var browser = 'UNKNOWN';
+    var browserVersion = 0.0;
+
+    if (/MSIE[\s](\d+)/.test(navigator.userAgent)) {
+        browserVersion = new Number(RegExp.$1);
+        isIE = true;
+        browser = 'IE';
+    }
+    else if (/Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent)) {
+        browserVersion = new Number(RegExp.$1);
+        isFirefox = true;
+        browser = 'Firefox';
+    }
+    else if (/Chrome[\/\s](\d+\.\d+)/.test(navigator.userAgent)) {
+        browserVersion = new Number(RegExp.$1);
+        isChrome = true;
+        browser = 'Chrome';
+    }
+    else if (/Safari/.test(navigator.userAgent)) {
+        /Version[\/\s](\d+\.\d+)/.test(navigator.userAgent);
+        browserVersion = new Number(RegExp.$1);
+        isSafari = true;
+        browser = 'Safari';
+    }
+    else if (/Opera[\/\s](\d+\.\d+)/.test(navigator.userAgent)){
+        browserVersion = new Number(RegExp.$1);
+        isOpera = true;
+        browser = 'Opera';
+    }
+
     /* begin functions */
 
     function asArray(args, start) {
@@ -226,7 +257,14 @@
 			this.currentAction = this.currentPhase.actions[0];
 			if (isEqual(this.currentAction.asynchronous, true)){
 				this.currentPhase.actions.splice(0, 1);
-				this.resume();
+				// FIXME
+				if(isIE){
+                    var self = this;
+                    setTimeout(function(){self.resume();}, 1000);
+                }
+                else{
+				    this.resume();
+				}
 			}
         }
     };
@@ -651,7 +689,7 @@
                 forEach(phase.actions, function(action) {
                     actions.push(copy({}, action));
                 });
-                if(isEqual(actions.length, 0)){
+                if(actions.length == 0){
                     actions.push({
                         mode : 'stop'
                     }); // requires an explicit request from the client
