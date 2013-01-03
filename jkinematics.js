@@ -257,7 +257,8 @@
 			this.currentAction = this.currentPhase.actions[0];
 			if (isEqual(this.currentAction.asynchronous, true)){
 				this.currentPhase.actions.splice(0, 1);
-				// FIXME
+			    this.resume();
+			    /*
 				if(isIE){
                     var self = this;
                     setTimeout(function(){self.resume();}, 1000);
@@ -265,6 +266,7 @@
                 else{
 				    this.resume();
 				}
+				*/
 			}
         }
     };
@@ -276,16 +278,22 @@
                 && this.currentPhase.actions.length > 0) {
             do {
                 this.currentAction = this.currentPhase.actions[0];
-                ret = this.executeAction(this.currentAction);
-                if (!ret) {
-                    if (isEqual(this.currentAction.mode, 'stop')
-                            || isEqual(this.currentAction.mode, 'wait')) {
-                        // stop and wait actions are executed only once
+                if(isEqual(this.currentAction.asynchronous, true)){
+                    ret = false;
+                    break;
+                }
+                else{
+                    ret = this.executeAction(this.currentAction);
+                    if (!ret) {
+                        if (isEqual(this.currentAction.mode, 'stop')
+                                || isEqual(this.currentAction.mode, 'wait')) {
+                            // stop and wait actions are executed only once
+                            this.currentPhase.actions.splice(0, 1);
+                        }
+                        break;
+                    } else {
                         this.currentPhase.actions.splice(0, 1);
                     }
-                    break;
-                } else {
-                    this.currentPhase.actions.splice(0, 1);
                 }
             } while (this.currentPhase.actions.length > 0);
         }
@@ -413,6 +421,10 @@
                 this.replayTimeout = null;
                 return this.nextPhase();
             }
+        }
+        // handle asynchronous action
+        if (!ret && isEqual(this.currentAction.asynchronous, true)){
+            this.executeAction(this.currentAction);
         }
         /***********************************************************************
          * // skip current phase --> go to next phase
