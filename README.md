@@ -3,7 +3,7 @@ JKinematics
 
 ## About
 
-JKinematics is a lightweight javacsript library, to manage transitions easily within the same html page.
+JKinematics is a lightweight javascript library, to manage transitions easily within the same html page.
 
 ## Transitions
 
